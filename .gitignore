@@ -1,0 +1,18 @@
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Dependencias y artefactos locales
+/vendor/
+/node_modules/
+*.zip
+*.log
+
+# Configuración y secretos locales
+.env
+.env.*
+*.sql
+*.bak
