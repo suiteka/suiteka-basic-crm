@@ -1,0 +1,26 @@
+{
+	"name": "suiteka/suiteka-basic-crm",
+	"description": "CRM ligero para el escritorio de WordPress. Las dependencias son solo de desarrollo (pruebas y análisis estático); el plugin no necesita Composer para funcionar.",
+	"type": "wordpress-plugin",
+	"homepage": "https://suiteka.com/",
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"phpunit/phpunit": "^9.6",
+		"wp-coding-standards/wpcs": "^3.1",
+		"wp-phpunit/wp-phpunit": "^7.1",
+		"yoast/phpunit-polyfills": "^2.0"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"sort-packages": true
+	},
+	"scripts": {
+		"lint": "find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l",
+		"phpcs": "phpcs",
+		"test": "phpunit",
+		"test:e2e": "tests/e2e/upgrade-from-1.0.0.sh"
+	}
+}

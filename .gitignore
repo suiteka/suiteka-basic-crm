@@ -16,3 +16,5 @@ Thumbs.db
 .env.*
 *.sql
 *.bak
+/composer.lock
+.phpunit.result.cache

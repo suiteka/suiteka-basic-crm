@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<ruleset name="Suiteka Basic CRM">
+	<description>WordPress Coding Standards y compatibilidad con PHP 7.0 o superior.</description>
+
+	<file>.</file>
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>/node_modules/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+	<arg name="colors"/>
+
+	<config name="testVersion" value="7.0-"/>
+	<config name="minimum_wp_version" value="5.2"/>
+
+	<rule ref="WordPress">
+		<!-- El archivo principal debe llamarse como el slug del plugin. -->
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+	</rule>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="suiteka-basic-crm"/>
+			</property>
+		</properties>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="suiteka_basic_crm"/>
+				<element value="Suiteka_Basic_CRM"/>
+				<element value="SUITEKA_BASIC_CRM"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		Las pruebas siguen las convenciones de la librería de pruebas de WordPress:
+		clases Test_* sin prefijo, métodos de prueba autoexplicativos sin docblock,
+		consultas directas para preparar datos y superglobales simuladas.
+	-->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FunctionComment.Missing">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Files.OneObjectStructurePerFile">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+</ruleset>

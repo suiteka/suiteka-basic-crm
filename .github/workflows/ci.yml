@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Sintaxis PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['7.0', '7.4', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: none
+      - name: php -l en los archivos del plugin
+        run: |
+          for f in suiteka-basic-crm.php uninstall.php includes/*.php admin/*.php; do
+            php -l "$f"
+          done
+
+  phpcs:
+    name: WordPress Coding Standards y PHPCompatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpcs
+
+  phpunit:
+    name: PHPUnit (WordPress ${{ matrix.wp }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        wp: ['latest']
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    env:
+      WP_CORE_DIR: /tmp/wordpress
+      WP_TESTS_DB_NAME: wordpress_test
+      WP_TESTS_DB_USER: root
+      WP_TESTS_DB_PASSWORD: root
+      WP_TESTS_DB_HOST: 127.0.0.1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer, wp-cli
+          extensions: mysqli
+      - run: composer install --no-interaction --no-progress
+      - name: Descargar WordPress
+        run: wp core download --version=${{ matrix.wp }} --path="$WP_CORE_DIR" --allow-root
+      - run: vendor/bin/phpunit
+
+  upgrade:
+    name: Actualización desde 1.0.0 y desinstalación
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wordpress
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: wp-cli
+          extensions: mysqli
+      - name: Preparar WordPress
+        run: |
+          wp core download --path=/tmp/wp
+          wp config create --path=/tmp/wp --dbname=wordpress --dbuser=root --dbpass=root --dbhost=127.0.0.1 --skip-check
+      - run: tests/e2e/upgrade-from-1.0.0.sh /tmp/wp
