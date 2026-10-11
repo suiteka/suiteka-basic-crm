@@ -81,7 +81,7 @@ Script de Playwright fuera del repositorio (no forma parte de la suite porque re
 | --- | --- | --- |
 | Ejecución real en PHP 7.0 y 7.1 | No hay imagen de WordPress 5.2 con PHP 7.0; solo se comprobó la sintaxis con PHP 7.0.33 y la compatibilidad con PHPCompatibility | Sitio con PHP 7.0 y WordPress 5.2: `tests/e2e/upgrade-from-1.0.0.sh` y `tests/e2e/http-smoke.sh` |
 | WordPress 5.2.0–5.2.3 | La imagen disponible es 5.2.4 | Repetir con el paquete de 5.2.0 |
-| MySQL 5.7/8.0 y bases de datos `utf8` | Solo había MariaDB 10.11 (el CI usa MySQL 8.0, ver §6) | Repetir la prueba de actualización con `utf8_general_ci` |
+| MySQL 5.7 y bases de datos `utf8` | En local solo había MariaDB 10.11; MySQL 8.0 con `utf8mb4` sí se probó en CI (§6) | Repetir la prueba de actualización con `utf8_general_ci` |
 | Multisitio | No se montó una red | Activación en red, visitar un subsitio (crea sus tablas), desinstalar con y sin borrado |
 | Lectores de pantalla reales | No disponibles en el entorno | Revisión con NVDA o VoiceOver |
 | Plugin Check de WordPress.org | wordpress.org bloqueado por la red del entorno | Instalar «Plugin Check» en un sitio de pruebas |
@@ -99,7 +99,9 @@ Script de Playwright fuera del repositorio (no forma parte de la suite porque re
 
 ## 6. Integración continua
 
-`.github/workflows/ci.yml` ejecuta en cada push: sintaxis con PHP 7.0, 7.4 y 8.3; PHPCS; PHPUnit con la última versión de WordPress y MySQL 8.0; y la prueba de actualización desde 1.0.0. El resultado de la primera ejecución en GitHub se indica en la descripción de la entrega o del pull request.
+`.github/workflows/ci.yml` ejecuta en cada push: sintaxis con PHP 7.0, 7.4 y 8.3; PHPCS; PHPUnit con la última versión de WordPress y MySQL 8.0; y la prueba de actualización desde 1.0.0 con MySQL 8.0.
+
+Primera ejecución en GitHub Actions (ejecución n.º 1, commit `0a434c2`, 2026-10-11): **6 de 6 trabajos correctos** — sintaxis PHP 7.0, 7.4 y 8.3; PHPCS; PHPUnit; actualización desde 1.0.0 y desinstalación. Esto añade una verificación en MySQL 8.0 que no estaba disponible en local.
 
 ## 7. Cómo repetir las pruebas
 
