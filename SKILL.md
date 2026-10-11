@@ -1,146 +1,175 @@
 # SKILL: desarrollo y mantenimiento de Suiteka Basic CRM
 
-Guía permanente para quien trabaje en este repositorio. Léela antes de cambiar código y mantenla al día.
+Guía permanente para quien trabaje en este repositorio (personas o agentes). Léela antes de cambiar código y mantenla al día en el mismo commit que cambie lo que describe.
 
-## 1. Qué es
+## 1. Qué es y hacia dónde va
 
-**Suiteka Basic CRM** es un plugin de WordPress que añade un gestor de contactos al escritorio. Su propósito es ser el CRM más sencillo posible: una agenda de clientes y personas de contacto que se puede crear, consultar, buscar, editar y eliminar. Si necesitas contexto sobre qué debería cubrir un CRM en una pequeña empresa y qué puede quedar fuera, el sitio de [Suiteka](https://suiteka.com/) es la referencia del proyecto.
+**Suiteka Basic CRM** es un plugin de WordPress que convierte el escritorio en un CRM ligero para autónomos y pequeñas empresas. Mantenido por [Suiteka](https://suiteka.com/).
 
-## 2. Alcance del MVP
+Visión: un CRM modular, seguro y fácil de usar que crece por fases — contactos y empresas (hecho), oportunidades y embudos, tareas y actividades, panel con métricas reales, importación y exportación CSV — sin dejar de ser un plugin instalable, sin dependencias externas y sin poner en riesgo los datos existentes.
 
-Incluido:
+Prioridades, en este orden: **seguridad y conservación de datos → facilidad de uso → cantidad de funciones**.
 
-- Menú «Suiteka CRM» con las pantallas «Contactos» (listado, edición y confirmación de borrado) y «Añadir contacto».
-- Campos: nombre completo (obligatorio), correo electrónico, teléfono, empresa, notas y fecha de creación (UTC en la base de datos; se muestra en la zona horaria del sitio).
-- Búsqueda por nombre, correo o empresa (`LIKE` sobre las tres columnas).
-- Paginación de 20 contactos por página.
-- Mensajes de éxito y error y pantalla vacía con llamada a la acción.
+Documentos de referencia:
 
-Fuera de alcance (no añadir sin una decisión explícita del mantenedor):
+| Documento | Contenido |
+| --- | --- |
+| [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) | Capas, modelo de datos, integridad, permisos, migraciones |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | Fases aprobadas, estado y decisiones pendientes |
+| [docs/AUDITORIA-TECNICA.md](docs/AUDITORIA-TECNICA.md) | Auditoría de 1.0.0 y seguimiento de hallazgos |
+| [docs/PRUEBAS.md](docs/PRUEBAS.md) | Pruebas ejecutadas y sus resultados reales |
 
-- Oportunidades, embudos, tareas, calendario, facturación, campañas, automatizaciones.
-- Inteligencia artificial, WhatsApp, correo saliente, integraciones externas.
-- API REST pública, shortcodes, bloques o cualquier salida en la parte pública.
-- Roles o capacidades personalizadas, paneles analíticos, importación/exportación.
-- Pantallas de ajustes.
-- Dependencias de Composer o npm, frameworks JavaScript o bibliotecas externas.
+## 2. Alcance
+
+**Implementado (1.1.0):** contactos (nombre y apellidos, correo, teléfono, cargo, empresa, origen, estado, etiquetas, responsable, notas, fechas), empresas, etiquetas, historial (eventos del sistema, notas, llamadas, reuniones), búsqueda, filtros, ordenación, paginación, detección y combinación de duplicados, capacidades propias con reglas por registro, migración desde 1.0.0.
+
+**Aprobado para fases siguientes** (ver hoja de ruta): oportunidades y embudos con tablero Kanban accesible, tareas y recordatorios dentro del escritorio, panel de métricas, importación y exportación CSV, rol «Comercial» y pantalla de ajustes.
+
+**Fuera de alcance salvo decisión explícita del mantenedor:**
+
+- Envío de correos, SMS o mensajes externos sin configuración y consentimiento explícitos.
+- Servicios externos, integraciones de terceros, inteligencia artificial.
+- Cualquier salida pública: API REST sin autenticación, `admin-ajax` para visitantes, shortcodes, bloques o páginas que muestren datos del CRM.
+- Dependencias de Composer o npm en tiempo de ejecución, frameworks JavaScript o bibliotecas externas.
+- Facturación, contabilidad, campañas de marketing.
+
+Reglas de trabajo: una fase de producto cada vez, en una rama creada desde `main`; nunca commits directos en `main`; nada se publica como versión de producción sin autorización del mantenedor.
 
 ## 3. Estructura de archivos
 
-Estructura plana a propósito. No crees subdirectorios salvo que sean imprescindibles.
-
-| Archivo | Responsabilidad |
+| Ruta | Responsabilidad |
 | --- | --- |
-| `suiteka-basic-crm.php` | Archivo principal. Cabecera del plugin, constantes de versión y la clase `Suiteka_Basic_CRM`: creación de la tabla (`install()` / `maybe_install()`), menú, CSS mínimo en línea, procesamiento de formularios (`handle_request()`, `handle_save()`, `handle_delete()`), validación, consultas y renderizado de las pantallas. |
-| `uninstall.php` | Desinstalación. Conserva los datos salvo que la opción `suiteka_basic_crm_delete_data_on_uninstall` valga exactamente `1`; en ese caso elimina la tabla y las opciones. Recorre todos los sitios en multisitio. |
-| `README.md` | Presentación del proyecto para GitHub. |
-| `readme.txt` | Readme con formato de WordPress.org. |
-| `SKILL.md` | Esta guía. |
-| `LICENSE` | Estado de la licencia (pendiente de decisión del mantenedor). |
-| `.gitignore` | Exclusiones de archivos locales, dependencias, registros y secretos. |
+| `suiteka-basic-crm.php` | Cabecera, constantes, carga de clases y fachada `Suiteka_Basic_CRM` (`init()`, `table()`, `install()`, `maybe_install()`, `now()`) |
+| `uninstall.php` | Desinstalación; conserva todo salvo que `suiteka_basic_crm_delete_data_on_uninstall` valga `1` |
+| `includes/class-suiteka-basic-crm-installer.php` | Esquema (`dbDelta`), migraciones versionadas, bloqueo |
+| `includes/class-suiteka-basic-crm-capabilities.php` | Capacidades, `map_meta_cap`, ámbito de visibilidad, responsables |
+| `includes/class-suiteka-basic-crm-validator.php` | Saneado y validación con errores por campo |
+| `includes/class-suiteka-basic-crm-contacts.php` | Repositorio y reglas de contactos |
+| `includes/class-suiteka-basic-crm-companies.php` | Repositorio y reglas de empresas |
+| `includes/class-suiteka-basic-crm-tags.php` | Etiquetas |
+| `includes/class-suiteka-basic-crm-activities.php` | Historial |
+| `includes/class-suiteka-basic-crm-duplicates.php` | Duplicados y combinación |
+| `admin/class-suiteka-basic-crm-admin.php` | Menú, CSS, avisos, utilidades de interfaz (paginación, ordenación, errores accesibles) |
+| `admin/class-suiteka-basic-crm-admin-*.php` | Un controlador por pantalla: contactos, empresas, actividades, duplicados |
+| `assets/css/admin.css` | Estilos de las pantallas del plugin |
+| `tests/phpunit/` | Pruebas de integración con la librería oficial de WordPress |
+| `tests/e2e/` | Prueba de actualización desde 1.0.0 y prueba de humo HTTP |
+| `docs/` | Auditoría, arquitectura, hoja de ruta, registro de pruebas |
+| `composer.json`, `phpcs.xml.dist`, `phpunit.xml.dist` | Herramientas **solo de desarrollo** |
+| `.github/workflows/ci.yml` | Integración continua |
+| `.gitattributes` | Excluye del paquete distribuible todo lo que no es el plugin |
 
-Datos persistentes:
+Reglas de capas: el dominio (`includes/`) no lee `$_GET`/`$_POST`, no comprueba nonces ni imprime HTML; la interfaz (`admin/`) no construye SQL. Un archivo por clase, con el nombre `class-{nombre-de-la-clase}.php`.
 
-- Tabla `{$wpdb->prefix}suiteka_crm_contacts` (columnas `id`, `full_name`, `email`, `phone`, `company`, `notes`, `created_at`).
-- Opción `suiteka_basic_crm_db_version`: versión del esquema instalada.
-- Opción `suiteka_basic_crm_delete_data_on_uninstall` (no existe por defecto): autoriza borrar datos al desinstalar.
+Datos persistentes: tablas `{prefijo}suiteka_crm_contacts`, `_companies`, `_tags`, `_tag_relationships`, `_activities`; opciones `suiteka_basic_crm_db_version`, `suiteka_basic_crm_upgrade_lock` (temporal) y `suiteka_basic_crm_delete_data_on_uninstall` (solo si se crea a mano); capacidades `suiteka_crm_*` en los roles. Detalle en `docs/ARQUITECTURA.md` §3.
 
 ## 4. Requisitos mínimos
 
-- **WordPress 5.2**: primera versión que respeta la cabecera `Requires PHP`. Todas las APIs usadas son anteriores (`dbDelta`, `sanitize_textarea_field` 4.7, `get_sites` 4.6, `wp_add_inline_style`, `paginate_links`, `mysql2date`).
-- **PHP 7.0**: el código no usa tipos escalares, tipos de retorno, operador `??` ni funciones flecha. Si se sube el mínimo, actualiza cabecera, `readme.txt`, `README.md` y esta sección a la vez.
+- **WordPress 5.2** y **PHP 7.0**. Probado de verdad en WordPress 5.2.4 con PHP 7.2.24 y en WordPress 7.1.3 con PHP 8.3; sintaxis comprobada con PHP 7.0.33. Ver `docs/PRUEBAS.md`.
+- PHP 7.0 implica: sin tipos anulables (`?int`), sin `void`, sin `array_key_first()`, sin funciones flecha, sin propiedades tipadas. `??` sí está permitido. PHPCompatibility lo verifica (`testVersion 7.0-`).
+- WordPress 5.2 implica: sin `wp_date()` ni `wp_timezone()` (5.3), sin el argumento `capability` de `get_users()` (5.9), sin `wp_admin_notice()` (6.4). Usa `mysql2date()` + `get_date_from_gmt()`.
+- Las herramientas de desarrollo (PHPUnit 9) necesitan PHP 7.3 o superior; no afectan al plugin.
+- Si se eleva un mínimo: cabecera del plugin, `readme.txt`, `README.md`, esta sección, `phpcs.xml.dist` (`testVersion`, `minimum_wp_version`) y la matriz de CI, a la vez.
 
-## 5. Instalar, activar, probar, depurar y actualizar
+## 5. Desarrollo y pruebas
 
-**Instalar y activar**: copia la carpeta en `wp-content/plugins/suiteka-basic-crm/` y actívala en «Plugins». Con WP-CLI: `wp plugin activate suiteka-basic-crm`.
+### Preparar el entorno
 
-**Probar** (en un sitio de pruebas, nunca en producción):
+```sh
+composer install                       # solo herramientas de desarrollo
+```
 
-1. `php -l suiteka-basic-crm.php` y `php -l uninstall.php`.
-2. Si tienes PHP_CodeSniffer con WordPress Coding Standards instalado fuera del repositorio: `phpcs --standard=WordPress --exclude=WordPress.Files.FileName suiteka-basic-crm.php uninstall.php`. La regla de nombre de archivo se excluye porque el archivo principal debe llamarse como el slug del plugin.
-3. Pruebas manuales como administrador:
-   - Con la tabla vacía aparece la pantalla de bienvenida.
-   - Crear sin nombre, con correo inválido o con teléfono con letras muestra errores y conserva lo escrito.
-   - Crear, editar y eliminar muestran el mensaje correspondiente.
-   - La búsqueda encuentra por nombre, correo y empresa; `%` y comillas no rompen nada.
-   - Con más de 20 contactos aparece la paginación y conserva la búsqueda.
-   - Entrar en «Eliminar» solo muestra la confirmación; el borrado ocurre al enviar el formulario.
-   - Un nombre como `Eve "<script>alert(1)</script>` se guarda sin etiquetas y se muestra escapado.
-4. Permisos: con un usuario Editor, las pantallas devuelven 403 y los POST no modifican nada.
-5. Ciclo de vida: desactivar y reactivar conserva los contactos; desinstalar conserva la tabla; con la opción de borrado a `1`, desinstalar elimina tabla y opciones.
+Necesitas una base de datos MySQL/MariaDB **exclusiva para pruebas** (la suite borra todas sus tablas) y una copia del núcleo de WordPress.
 
-**Depurar**: en `wp-config.php` del sitio de pruebas usa `WP_DEBUG` y `WP_DEBUG_LOG` a `true` y `WP_DEBUG_DISPLAY` a `false`; revisa `wp-content/debug.log`. Los errores de base de datos se registran ahí y la interfaz solo muestra mensajes genéricos. Comprueba la tabla con `wp db query "DESCRIBE wp_suiteka_crm_contacts"`.
+### Comprobaciones (todas deben pasar antes de cada commit)
 
-**Actualizar**:
+```sh
+composer lint                          # php -l
+vendor/bin/phpcs                       # WordPress Coding Standards + PHPCompatibilityWP (PHP 7.0+, WP 5.2+)
 
-- Sube `Version` en la cabecera, `SUITEKA_BASIC_CRM_VERSION` y `Stable tag` en `readme.txt`, y añade una entrada en `== Changelog ==`.
-- Si cambia el esquema: modifica el `CREATE TABLE` de `install()` (dbDelta añade columnas e índices, pero no borra ni renombra) e incrementa `SUITEKA_BASIC_CRM_DB_VERSION`. `maybe_install()` aplicará el cambio en la siguiente carga del escritorio.
-- Nunca elimines columnas con datos sin una migración explícita y una nota en el changelog.
+WP_CORE_DIR=/ruta/a/wordpress \
+WP_TESTS_DB_NAME=wordpress_test WP_TESTS_DB_USER=usuario WP_TESTS_DB_PASSWORD=clave WP_TESTS_DB_HOST=127.0.0.1 \
+vendor/bin/phpunit                     # integración con WordPress
 
-## 6. Convenciones de código
+tests/e2e/upgrade-from-1.0.0.sh /ruta/a/un/wordpress/desechable
+tests/e2e/http-smoke.sh http://sitio-de-pruebas admin clave [usuario-sin-acceso clave]
+```
 
-- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/): tabuladores, espacios dentro de paréntesis, `array()`, condiciones Yoda, llaves siempre.
-- Prefijo `suiteka_basic_crm_` / `Suiteka_Basic_CRM` / `suiteka-crm` en funciones, opciones, clases, nonces, slugs y clases CSS.
-- Dominio de texto `suiteka-basic-crm` en todas las cadenas. Idioma fuente: español. Añade comentarios `/* translators: */` cuando haya marcadores.
+- `upgrade-from-1.0.0.sh` **borra las tablas** de ese WordPress: instala 1.0.0 desde Git, crea datos heredados con casos límite, actualiza, comprueba que nada se pierde ni cambia, repite la migración, prueba el bloqueo, la desactivación y ambas desinstalaciones.
+- `http-smoke.sh` recorre todas las pantallas por HTTP con un administrador (crea, busca, combina y borra registros de prueba) y comprueba los 403 de un usuario sin acceso.
+- Para WordPress 5.2 se puede usar la imagen `wordpress:5.2-php7.2` (ver `docs/PRUEBAS.md`).
+
+### Pruebas manuales que no cubren las automáticas
+
+- Revisión con lector de pantalla (NVDA, VoiceOver) de formularios, errores e historial.
+- Multisitio: activación en red, visitar un subsitio, desinstalar.
+- MySQL 5.7 con intercalación `utf8_general_ci`.
+
+### Depurar
+
+En el `wp-config.php` del sitio de pruebas: `WP_DEBUG` y `WP_DEBUG_LOG` a `true`, `WP_DEBUG_DISPLAY` a `false`; revisa `wp-content/debug.log`. La interfaz nunca muestra errores internos.
+
+### Escribir pruebas
+
+- Hereda de `Suiteka_Basic_CRM_Test_Case`: crea un administrador, dos comerciales (rol de pruebas con `view`, `edit` y `delete`) y un editor; convierte las redirecciones en excepciones; restablece el estado estático de los controladores.
+- Simula peticiones con `$this->request( Controlador, $get, $post, $accion_del_nonce )`; un nonce `null` es inválido.
+- Cada cambio de comportamiento lleva su prueba; cada error corregido, una prueba que lo reproduzca.
+
+## 6. Migraciones del esquema
+
+1. Modifica `Suiteka_Basic_CRM_Installer::schema()` (solo añadir columnas, índices o tablas).
+2. Incrementa `SUITEKA_BASIC_CRM_DB_VERSION`.
+3. Añade un método `migrate_to_N()` idempotente y reanudable, y llámalo en `install()` si la versión instalada es menor que `N`.
+4. No elimines ni renombres columnas con datos. Si una columna deja de usarse, se conserva y se documenta como heredada.
+5. Prueba la actualización desde la última versión publicada y desde 1.0.0 (amplía `tests/e2e/upgrade-from-1.0.0.sh`).
+6. Documenta el paso en `docs/ARQUITECTURA.md` §7 y en el changelog, indicando qué ocurre con los campos vacíos y los duplicados.
+
+## 7. Convenciones de código
+
+- [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/) (verificado por `phpcs.xml.dist`): tabuladores, `array()`, condiciones Yoda, llaves siempre.
+- Prefijos: `Suiteka_Basic_CRM_` (clases), `suiteka_basic_crm_` (funciones, opciones, filtros), `suiteka_crm_` (capacidades y nonces), `suiteka-crm` (slugs, clases e IDs de HTML).
+- Dominio de texto `suiteka-basic-crm`; idioma fuente español; comentario `/* translators: */` cuando haya marcadores.
 - Comentarios y docblocks breves, en español.
-- Usa funciones nativas de WordPress antes que código propio y las clases de estilo del escritorio (`wrap`, `form-table`, `widefat`, `notice`, `button`).
-- Sin JavaScript. Si alguna vez es imprescindible, debe ser mínimo, sin dependencias y encolado solo en las pantallas del plugin.
-- Los `phpcs:ignore` / `phpcs:disable` solo con una justificación en el mismo comentario.
+- APIs de WordPress antes que código propio; clases de estilo del escritorio (`wrap`, `form-table`, `widefat`, `notice`, `button`).
+- Sin JavaScript. Si alguna vez es imprescindible: mínimo, sin dependencias, solo en las pantallas del plugin y con la página funcionando sin él.
+- Todo `phpcs:ignore` / `phpcs:disable` lleva su justificación en el mismo comentario.
 
-## 7. Reglas de seguridad obligatorias
+## 8. Reglas de seguridad obligatorias
 
-1. Toda pantalla y todo procesamiento comprueban `current_user_can( 'manage_options' )`.
-2. Toda operación que escribe usa POST y un nonce cuyo nombre incluye el ID del contacto (`suiteka_crm_save_contact_{id}`, `suiteka_crm_delete_contact_{id}`), verificado con `check_admin_referer()`.
-3. Nunca se borra ni modifica nada mediante GET. Los enlaces solo muestran pantallas.
-4. Los IDs del navegador se convierten con `absint()` y se verifica que el contacto existe antes de actuar.
-5. Entradas: `wp_unslash()` y después `sanitize_text_field()`, `sanitize_textarea_field()` o `sanitize_email()`; valida formato y longitud y rechaza valores que no sean texto.
-6. Salidas: `esc_html()`, `esc_attr()`, `esc_textarea()`, `esc_url()` según el contexto, también en las traducciones (`esc_html__()`, `esc_attr_e()`…).
-7. SQL: valores variables siempre con `$wpdb->prepare()`; en búsquedas `LIKE`, `$wpdb->esc_like()`. El nombre de la tabla solo sale de `table_name()`.
-8. Los mensajes de la URL (`message=`) se traducen desde una lista cerrada; nunca se imprime el valor recibido.
-9. Ningún error interno (SQL, rutas, trazas) se muestra al usuario.
-10. Nada público: sin REST, sin `admin-ajax` sin autenticar, sin shortcodes.
-11. No se guardan contraseñas, tokens, secretos ni datos personales más allá de los campos del contacto.
-12. Desinstalar conserva los datos salvo autorización explícita.
+1. **Permisos.** Toda pantalla comprueba su capacidad en el menú y en `load-{pantalla}`; toda operación comprueba la meta-capacidad del registro (`suiteka_crm_view_record`, `_edit_record`, `_delete_record`, con el ID del responsable) antes de leerlo o modificarlo. Nunca `manage_options` para el CRM.
+2. **Visibilidad.** Toda consulta de listados, búsquedas, recuentos, sugerencias o exportaciones aplica `Suiteka_Basic_CRM_Capabilities::scope()` en el SQL. Un usuario no puede ver, por ninguna vía, registros que no está autorizado a consultar.
+3. **Escrituras.** Solo por POST, con `check_admin_referer()` y un nonce que incluye la operación y el ID (`suiteka_crm_save_contact_{id}`, `suiteka_crm_merge_contacts_{a}_{b}`…). Nada se modifica por GET.
+4. **Entradas.** `wp_unslash()`, comprobación de tipo (`is_string`), saneado, validación de formato, longitud y lista blanca con `Suiteka_Basic_CRM_Validator`. Si el saneado altera el valor, se rechaza el campo y se conserva lo escrito.
+5. **Salidas.** `esc_html()`, `esc_attr()`, `esc_textarea()`, `esc_url()` según el contexto, también en traducciones.
+6. **SQL.** Valores con `$wpdb->prepare()`; `LIKE` con `$wpdb->esc_like()`; tablas solo desde `Suiteka_Basic_CRM::table()`; `ORDER BY` desde lista blanca.
+7. **Mensajes de la URL** desde una lista cerrada; nunca se imprime el valor recibido.
+8. **Errores internos** solo en el registro de depuración.
+9. **Nada público.** Sin REST ni `admin-ajax` sin autenticación y autorización, sin shortcodes, sin bloques.
+10. **Datos.** No se guardan contraseñas, tokens ni secretos. El historial guarda los nombres de los campos modificados, no los valores antiguos.
+11. **Repositorio.** Sin credenciales, volcados, registros ni datos personales reales; los datos de prueba usan dominios `example.test`/`example.org`.
+12. **Desinstalación.** Conserva todo salvo autorización explícita.
 
-## 8. Cómo añadir funciones sin convertirlo en un CRM complejo
+## 9. Lista de comprobación antes de integrar o publicar
 
-Antes de añadir algo, responde «sí» a todo:
-
-- ¿Lo necesita la mayoría de quienes solo quieren una agenda de contactos?
-- ¿Cabe en la tabla y las pantallas existentes, o en un único campo nuevo?
-- ¿Se puede hacer sin dependencias, sin JavaScript y sin pantallas de ajustes?
-- ¿No abre ninguna vía de acceso público a los datos?
-
-Si alguna respuesta es «no», no se implementa aquí. Si es «sí»: un cambio por commit, respetando las reglas de seguridad, actualizando el esquema con `SUITEKA_BASIC_CRM_DB_VERSION` si toca la tabla, y actualizando la documentación (sección 10).
-
-## 9. Lista de comprobación antes de publicar
-
-- [ ] `php -l` sin errores en todos los archivos PHP.
-- [ ] `phpcs` (WordPress) sin errores, si está disponible.
-- [ ] Pruebas manuales de la sección 5 hechas en un WordPress real (crear, listar, buscar, paginar, editar, eliminar, permisos, ciclo de vida).
+- [ ] `composer lint`, `vendor/bin/phpcs` y `vendor/bin/phpunit` sin errores.
+- [ ] `tests/e2e/upgrade-from-1.0.0.sh` y `tests/e2e/http-smoke.sh` correctos en un WordPress real.
 - [ ] Sin avisos nuevos en `debug.log`.
-- [ ] Versión coherente en cabecera, constante, `Stable tag` y changelog.
-- [ ] Requisitos coherentes en cabecera, `readme.txt`, `README.md` y este archivo.
-- [ ] Añadido `Tested up to` en `readme.txt` solo con una versión de WordPress realmente probada.
-- [ ] Licencia decidida y reflejada en `LICENSE`, cabeceras y README (obligatoria antes de distribuir públicamente).
-- [ ] Sin secretos, registros, volcados de base de datos ni datos personales en el repositorio.
-- [ ] El alcance sigue siendo el de la sección 2.
+- [ ] CI en verde.
+- [ ] Versión coherente en cabecera, `SUITEKA_BASIC_CRM_VERSION`, `Stable tag` y changelog; esquema en `SUITEKA_BASIC_CRM_DB_VERSION`.
+- [ ] Requisitos coherentes en cabecera, `readme.txt`, `README.md` y sección 4.
+- [ ] `Tested up to` solo con una versión de WordPress realmente probada.
+- [ ] `docs/PRUEBAS.md` actualizado con resultados reales.
+- [ ] **Licencia decidida** y reflejada en `LICENSE`, cabeceras y README (obligatorio antes de distribuir).
+- [ ] Revisión y aprobación del mantenedor.
 
 ## 10. Mantener la documentación al día
 
-Cada cambio de código actualiza en el mismo commit lo que describa ese comportamiento:
-
-- Funciones o campos: «Funciones» de `README.md`, «Description» de `readme.txt` y secciones 2 y 3 de este archivo.
-- Requisitos: cabecera del plugin, `readme.txt`, `README.md` y sección 4.
-- Datos, opciones o desinstalación: «Conservación de datos» de `README.md`, la FAQ de `readme.txt` y sección 3.
-- Seguridad: sección 7 y «Seguridad» de `README.md`.
-- Nueva versión: changelog de `readme.txt`.
-
-Si la documentación y el código no coinciden, manda el código: corrige la documentación.
+Cada cambio de código actualiza en el mismo commit lo que describa ese comportamiento: `README.md` y `readme.txt` (funciones, permisos, datos, changelog), `docs/ARQUITECTURA.md` (modelo, reglas, migraciones), `docs/ROADMAP.md` (estado), `docs/PRUEBAS.md` (resultados) y esta guía. Si la documentación y el código no coinciden, manda el código: corrige la documentación.
 
 ## 11. Identidad y mantenimiento
 
 - Proyecto: Suiteka Basic CRM. Marca y mantenimiento: Suiteka — https://suiteka.com/.
-- El autor que figura en la cabecera del plugin es «Suiteka». No se añaden nombres de personas, colaboradores ni créditos que no correspondan a contribuciones reales y autorizadas.
-- Los commits se hacen con la identidad Git real y autorizada de quien los publica. No se reescribe el historial para ocultar la procedencia de contribuciones.
+- El autor de la cabecera del plugin es «Suiteka». No se añaden nombres de personas ni créditos que no correspondan a contribuciones reales y autorizadas.
+- Los commits se hacen con la identidad Git real y autorizada de quien los publica. No se reescribe el historial publicado.
 - No se añaden insignias, enlaces promocionales ni publicidad.
+- **Licencia pendiente** (ver `LICENSE` y `docs/AUDITORIA-TECNICA.md` §5): ninguna persona ni agente elige licencia; lo decide el mantenedor.
