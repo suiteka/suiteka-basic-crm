@@ -1,0 +1,206 @@
+/* Suiteka Basic CRM: estilos de las pantallas de administración. */
+
+.suiteka-crm-panel {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	padding: 8px 20px 16px;
+	margin: 16px 0;
+}
+
+.suiteka-crm-narrow {
+	max-width: 640px;
+}
+
+.suiteka-crm-columns {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 0 20px;
+	align-items: start;
+}
+
+/* Filtros */
+.suiteka-crm-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	align-items: flex-end;
+	margin: 16px 0 8px;
+}
+
+.suiteka-crm-filter {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.suiteka-crm-results {
+	margin: 8px 0;
+}
+
+/* Tablas */
+/* position: relative hace que los textos para lectores de pantalla (posición absoluta)
+   de las celdas queden recortados por el contenedor y no ensanchen la página en móvil. */
+.suiteka-crm-table-wrap {
+	position: relative;
+	overflow-x: auto;
+	clear: both;
+}
+
+.suiteka-crm-table-wrap:focus {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.suiteka-crm-table-wrap table {
+	min-width: 720px;
+}
+
+.suiteka-crm-table th.sortable a,
+.suiteka-crm-table th.sorted a {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.suiteka-crm-sort-indicator {
+	font-size: 10px;
+}
+
+/* Fichas */
+.suiteka-crm-details {
+	display: grid;
+	grid-template-columns: max-content minmax(0, 1fr);
+	gap: 6px 16px;
+	margin: 0 0 16px;
+}
+
+.suiteka-crm-details dt {
+	font-weight: 600;
+}
+
+.suiteka-crm-details dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.suiteka-crm-notes,
+.suiteka-crm-activity-content {
+	overflow-wrap: anywhere;
+}
+
+.suiteka-crm-danger-link {
+	margin-top: 16px;
+}
+
+.suiteka-crm-danger-link a {
+	color: #b32d2e;
+}
+
+/* Formularios */
+.suiteka-crm-field-error {
+	color: #b32d2e;
+	font-weight: 600;
+	margin: 4px 0 0;
+}
+
+[aria-invalid="true"] {
+	border-color: #b32d2e !important;
+	box-shadow: 0 0 0 1px #b32d2e;
+}
+
+.suiteka-crm-error-summary a {
+	color: inherit;
+}
+
+.suiteka-crm-inline-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 16px;
+}
+
+.suiteka-crm-inline-fields > span {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.suiteka-crm-activity-form fieldset {
+	border: 0;
+	margin: 0;
+	padding: 0;
+}
+
+.suiteka-crm-activity-form legend {
+	font-weight: 600;
+	padding: 0;
+}
+
+/* Historial */
+.suiteka-crm-timeline {
+	list-style: none;
+	margin: 16px 0 0;
+	padding: 0;
+	border-left: 3px solid #dcdcde;
+}
+
+.suiteka-crm-activity {
+	margin: 0 0 12px;
+	padding: 4px 0 4px 12px;
+}
+
+.suiteka-crm-activity p {
+	margin: 0 0 4px;
+}
+
+.suiteka-crm-activity-meta {
+	color: #50575e;
+}
+
+.suiteka-crm-activity-system {
+	color: #50575e;
+}
+
+.suiteka-crm-activity-delete {
+	margin-top: 4px;
+}
+
+.suiteka-crm-list {
+	margin-left: 0;
+}
+
+.suiteka-crm-list.ul-disc {
+	margin-left: 20px;
+}
+
+/* Combinación */
+.suiteka-crm-merge th[scope="row"] {
+	font-weight: 600;
+}
+
+@media screen and (max-width: 960px) {
+	.suiteka-crm-columns {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+@media screen and (max-width: 782px) {
+	.suiteka-crm-filters {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.suiteka-crm-filter input[type="search"],
+	.suiteka-crm-filter select {
+		width: 100%;
+		max-width: none;
+	}
+
+	.suiteka-crm-details {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 2px;
+	}
+
+	.suiteka-crm-details dd {
+		margin-bottom: 8px;
+	}
+}
